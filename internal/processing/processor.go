@@ -57,14 +57,14 @@ type Processor struct {
 		SUB-PROCESSORS
 	*/
 
-	*account.AccountProcessor
-	adminProcessor      admin.Processor
-	statusProcessor     status.Processor
-	streamingProcessor  streaming.Processor
-	mediaProcessor      mediaProcessor.Processor
-	userProcessor       user.Processor
-	federationProcessor federationProcessor.Processor
-	reportProcessor     report.Processor
+	account.AccountProcessor
+	admin.AdminProcessor
+	federationProcessor.FederationProcessor
+	statusProcessor    status.Processor
+	streamingProcessor streaming.Processor
+	mediaProcessor     mediaProcessor.Processor
+	userProcessor      user.Processor
+	reportProcessor    report.Processor
 }
 
 // NewProcessor returns a new Processor.
@@ -83,10 +83,8 @@ func NewProcessor(
 
 	statusProcessor := status.New(db, tc, clientWorker, parseMentionFunc)
 	streamingProcessor := streaming.New(db, oauthServer)
-	adminProcessor := admin.New(db, tc, mediaManager, federator.TransportController(), storage, clientWorker)
 	mediaProcessor := mediaProcessor.New(db, tc, mediaManager, federator.TransportController(), storage)
 	userProcessor := user.New(db, emailSender)
-	federationProcessor := federationProcessor.New(db, tc, federator)
 	reportProcessor := report.New(db, tc, clientWorker)
 	filter := visibility.NewFilter(db)
 
@@ -104,13 +102,14 @@ func NewProcessor(
 		filter:          visibility.NewFilter(db),
 
 		AccountProcessor:    account.New(db, tc, mediaManager, oauthServer, clientWorker, federator, parseMentionFunc),
-		adminProcessor:      adminProcessor,
-		statusProcessor:     statusProcessor,
-		streamingProcessor:  streamingProcessor,
-		mediaProcessor:      mediaProcessor,
-		userProcessor:       userProcessor,
-		federationProcessor: federationProcessor,
-		reportProcessor:     reportProcessor,
+		AdminProcessor:      admin.New(db, tc, mediaManager, federator.TransportController(), storage, clientWorker),
+		FederationProcessor: federationProcessor.New(db, tc, federator),
+
+		statusProcessor:    statusProcessor,
+		streamingProcessor: streamingProcessor,
+		mediaProcessor:     mediaProcessor,
+		userProcessor:      userProcessor,
+		reportProcessor:    reportProcessor,
 	}
 }
 

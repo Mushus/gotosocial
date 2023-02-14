@@ -54,8 +54,8 @@ func New(
 	clientWorker *concurrency.WorkerPool[messages.FromClientAPI],
 	federator federation.Federator,
 	parseMention gtsmodel.ParseMentionFunc,
-) *AccountProcessor {
-	return &AccountProcessor{
+) AccountProcessor {
+	return AccountProcessor{
 		tc:           tc,
 		mediaManager: mediaManager,
 		clientWorker: clientWorker,

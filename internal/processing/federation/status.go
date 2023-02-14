@@ -30,7 +30,74 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/transport"
 )
 
-func (p *processor) GetStatusReplies(ctx context.Context, requestedUsername string, requestedStatusID string, page bool, onlyOtherAccounts bool, minID string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
+// FediStatusGet handles the getting of a fedi/activitypub representation of a particular status, performing appropriate
+// authentication before returning a JSON serializable interface to the caller.
+func (p *FederationProcessor) FediStatusGet(ctx context.Context, requestedUsername string, requestedStatusID string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
+	// get the account the request is referring to
+	requestedAccount, err := p.db.GetAccountByUsernameDomain(ctx, requestedUsername, "")
+	if err != nil {
+		return nil, gtserror.NewErrorNotFound(fmt.Errorf("database error getting account with username %s: %s", requestedUsername, err))
+	}
+
+	// authenticate the request
+	requestingAccountURI, errWithCode := p.federator.AuthenticateFederatedRequest(ctx, requestedUsername)
+	if errWithCode != nil {
+		return nil, errWithCode
+	}
+
+	requestingAccount, err := p.federator.GetAccountByURI(
+		transport.WithFastfail(ctx), requestedUsername, requestingAccountURI, false,
+	)
+	if err != nil {
+		return nil, gtserror.NewErrorUnauthorized(err)
+	}
+
+	// authorize the request:
+	// 1. check if a block exists between the requester and the requestee
+	blocked, err := p.db.IsBlocked(ctx, requestedAccount.ID, requestingAccount.ID, true)
+	if err != nil {
+		return nil, gtserror.NewErrorInternalError(err)
+	}
+
+	if blocked {
+		return nil, gtserror.NewErrorUnauthorized(fmt.Errorf("block exists between accounts %s and %s", requestedAccount.ID, requestingAccount.ID))
+	}
+
+	// get the status out of the database here
+	s, err := p.db.GetStatusByID(ctx, requestedStatusID)
+	if err != nil {
+		return nil, gtserror.NewErrorNotFound(fmt.Errorf("database error getting status with id %s and account id %s: %s", requestedStatusID, requestedAccount.ID, err))
+	}
+
+	if s.AccountID != requestedAccount.ID {
+		return nil, gtserror.NewErrorNotFound(fmt.Errorf("status with id %s does not belong to account with id %s", s.ID, requestedAccount.ID))
+	}
+
+	visible, err := p.filter.StatusVisible(ctx, s, requestingAccount)
+	if err != nil {
+		return nil, gtserror.NewErrorInternalError(err)
+	}
+	if !visible {
+		return nil, gtserror.NewErrorNotFound(fmt.Errorf("status with id %s not visible to user with id %s", s.ID, requestingAccount.ID))
+	}
+
+	// requester is authorized to view the status, so convert it to AP representation and serialize it
+	asStatus, err := p.tc.StatusToAS(ctx, s)
+	if err != nil {
+		return nil, gtserror.NewErrorInternalError(err)
+	}
+
+	data, err := streams.Serialize(asStatus)
+	if err != nil {
+		return nil, gtserror.NewErrorInternalError(err)
+	}
+
+	return data, nil
+}
+
+// GetStatus handles the getting of a fedi/activitypub representation of replies to a status, performing appropriate
+// authentication before returning a JSON serializable interface to the caller.
+func (p *FederationProcessor) FediStatusRepliesGet(ctx context.Context, requestedUsername string, requestedStatusID string, page bool, onlyOtherAccounts bool, minID string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
 	// get the account the request is referring to
 	requestedAccount, err := p.db.GetAccountByUsernameDomain(ctx, requestedUsername, "")
 	if err != nil {

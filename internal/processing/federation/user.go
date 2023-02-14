@@ -30,7 +30,9 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/uris"
 )
 
-func (p *processor) GetUser(ctx context.Context, requestedUsername string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
+// FediUserGet handles the getting of a fedi/activitypub representation of a user/account, performing appropriate authentication
+// before returning a JSON serializable interface to the caller.
+func (p *FederationProcessor) FediUserGet(ctx context.Context, requestedUsername string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
 	// Get the instance-local account the request is referring to.
 	requestedAccount, err := p.db.GetAccountByUsernameDomain(ctx, requestedUsername, "")
 	if err != nil {

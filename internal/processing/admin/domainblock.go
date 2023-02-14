@@ -1,27 +1,13 @@
-/*
-   GoToSocial
-   Copyright (C) 2021-2023 GoToSocial Authors admin@gotosocial.org
-
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU Affero General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Affero General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 package admin
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"strings"
 	"time"
 
@@ -37,7 +23,7 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/text"
 )
 
-func (p *processor) DomainBlockCreate(ctx context.Context, account *gtsmodel.Account, domain string, obfuscate bool, publicComment string, privateComment string, subscriptionID string) (*apimodel.DomainBlock, gtserror.WithCode) {
+func (p *AdminProcessor) AdminDomainBlockCreate(ctx context.Context, account *gtsmodel.Account, domain string, obfuscate bool, publicComment string, privateComment string, subscriptionID string) (*apimodel.DomainBlock, gtserror.WithCode) {
 	// domain blocks will always be lowercase
 	domain = strings.ToLower(domain)
 
@@ -88,10 +74,8 @@ func (p *processor) DomainBlockCreate(ctx context.Context, account *gtsmodel.Acc
 // 1. Strip most info away from the instance entry for the domain.
 // 2. Delete the instance account for that instance if it exists.
 // 3. Select all accounts from this instance and pass them through the delete functionality of the processor.
-func (p *processor) initiateDomainBlockSideEffects(ctx context.Context, account *gtsmodel.Account, block *gtsmodel.DomainBlock) {
-	l := log.WithFields(kv.Fields{
-		{"domain", block.Domain},
-	}...)
+func (p *AdminProcessor) initiateDomainBlockSideEffects(ctx context.Context, account *gtsmodel.Account, block *gtsmodel.DomainBlock) {
+	l := log.WithFields(kv.Fields{{"domain", block.Domain}}...)
 
 	l.Debug("processing domain block side effects")
 
@@ -172,4 +156,135 @@ selectAccountsLoop:
 			}
 		}
 	}
+}
+
+// AdminDomainBlocksImport handles the import of a bunch of domain blocks at once, by calling the AdminDomainBlockCreate function for each domain in the provided file.
+func (p *AdminProcessor) AdminDomainBlocksImport(ctx context.Context, account *gtsmodel.Account, domains *multipart.FileHeader) ([]*apimodel.DomainBlock, gtserror.WithCode) {
+	f, err := domains.Open()
+	if err != nil {
+		return nil, gtserror.NewErrorBadRequest(fmt.Errorf("DomainBlocksImport: error opening attachment: %s", err))
+	}
+	buf := new(bytes.Buffer)
+	size, err := io.Copy(buf, f)
+	if err != nil {
+		return nil, gtserror.NewErrorBadRequest(fmt.Errorf("DomainBlocksImport: error reading attachment: %s", err))
+	}
+	if size == 0 {
+		return nil, gtserror.NewErrorBadRequest(errors.New("DomainBlocksImport: could not read provided attachment: size 0 bytes"))
+	}
+
+	d := []apimodel.DomainBlock{}
+	if err := json.Unmarshal(buf.Bytes(), &d); err != nil {
+		return nil, gtserror.NewErrorBadRequest(fmt.Errorf("DomainBlocksImport: could not read provided attachment: %s", err))
+	}
+
+	blocks := []*apimodel.DomainBlock{}
+	for _, d := range d {
+		block, err := p.AdminDomainBlockCreate(ctx, account, d.Domain.Domain, false, d.PublicComment, "", "")
+		if err != nil {
+			return nil, err
+		}
+
+		blocks = append(blocks, block)
+	}
+
+	return blocks, nil
+}
+
+func (p *AdminProcessor) AdminDomainBlocksGet(ctx context.Context, account *gtsmodel.Account, export bool) ([]*apimodel.DomainBlock, gtserror.WithCode) {
+	domainBlocks := []*gtsmodel.DomainBlock{}
+
+	if err := p.db.GetAll(ctx, &domainBlocks); err != nil {
+		if !errors.Is(err, db.ErrNoEntries) {
+			// something has gone really wrong
+			return nil, gtserror.NewErrorInternalError(err)
+		}
+	}
+
+	apiDomainBlocks := []*apimodel.DomainBlock{}
+	for _, b := range domainBlocks {
+		apiDomainBlock, err := p.tc.DomainBlockToAPIDomainBlock(ctx, b, export)
+		if err != nil {
+			return nil, gtserror.NewErrorInternalError(err)
+		}
+		apiDomainBlocks = append(apiDomainBlocks, apiDomainBlock)
+	}
+
+	return apiDomainBlocks, nil
+}
+
+func (p *AdminProcessor) AdminDomainBlockGet(ctx context.Context, account *gtsmodel.Account, id string, export bool) (*apimodel.DomainBlock, gtserror.WithCode) {
+	domainBlock := &gtsmodel.DomainBlock{}
+
+	if err := p.db.GetByID(ctx, id, domainBlock); err != nil {
+		if !errors.Is(err, db.ErrNoEntries) {
+			// something has gone really wrong
+			return nil, gtserror.NewErrorInternalError(err)
+		}
+		// there are no entries for this ID
+		return nil, gtserror.NewErrorNotFound(fmt.Errorf("no entry for ID %s", id))
+	}
+
+	apiDomainBlock, err := p.tc.DomainBlockToAPIDomainBlock(ctx, domainBlock, export)
+	if err != nil {
+		return nil, gtserror.NewErrorInternalError(err)
+	}
+
+	return apiDomainBlock, nil
+}
+
+func (p *AdminProcessor) AdminDomainBlockDelete(ctx context.Context, account *gtsmodel.Account, id string) (*apimodel.DomainBlock, gtserror.WithCode) {
+	domainBlock := &gtsmodel.DomainBlock{}
+
+	if err := p.db.GetByID(ctx, id, domainBlock); err != nil {
+		if !errors.Is(err, db.ErrNoEntries) {
+			// something has gone really wrong
+			return nil, gtserror.NewErrorInternalError(err)
+		}
+		// there are no entries for this ID
+		return nil, gtserror.NewErrorNotFound(fmt.Errorf("no entry for ID %s", id))
+	}
+
+	// prepare the domain block to return
+	apiDomainBlock, err := p.tc.DomainBlockToAPIDomainBlock(ctx, domainBlock, false)
+	if err != nil {
+		return nil, gtserror.NewErrorInternalError(err)
+	}
+
+	// Delete the domain block
+	if err := p.db.DeleteDomainBlock(ctx, domainBlock.Domain); err != nil {
+		return nil, gtserror.NewErrorInternalError(err)
+	}
+
+	// remove the domain block reference from the instance, if we have an entry for it
+	i := &gtsmodel.Instance{}
+	if err := p.db.GetWhere(ctx, []db.Where{
+		{Key: "domain", Value: domainBlock.Domain},
+		{Key: "domain_block_id", Value: id},
+	}, i); err == nil {
+		updatingColumns := []string{"suspended_at", "domain_block_id", "updated_at"}
+		i.SuspendedAt = time.Time{}
+		i.DomainBlockID = ""
+		i.UpdatedAt = time.Now()
+		if err := p.db.UpdateByID(ctx, i, i.ID, updatingColumns...); err != nil {
+			return nil, gtserror.NewErrorInternalError(fmt.Errorf("couldn't update database entry for instance %s: %s", domainBlock.Domain, err))
+		}
+	}
+
+	// unsuspend all accounts whose suspension origin was this domain block
+	// 1. remove the 'suspended_at' entry from their accounts
+	if err := p.db.UpdateWhere(ctx, []db.Where{
+		{Key: "suspension_origin", Value: domainBlock.ID},
+	}, "suspended_at", nil, &[]*gtsmodel.Account{}); err != nil {
+		return nil, gtserror.NewErrorInternalError(fmt.Errorf("database error removing suspended_at from accounts: %s", err))
+	}
+
+	// 2. remove the 'suspension_origin' entry from their accounts
+	if err := p.db.UpdateWhere(ctx, []db.Where{
+		{Key: "suspension_origin", Value: domainBlock.ID},
+	}, "suspension_origin", nil, &[]*gtsmodel.Account{}); err != nil {
+		return nil, gtserror.NewErrorInternalError(fmt.Errorf("database error removing suspension_origin from accounts: %s", err))
+	}
+
+	return apiDomainBlock, nil
 }

@@ -22,6 +22,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	apimodel "github.com/superseriousbusiness/gotosocial/internal/api/model"
 	"github.com/superseriousbusiness/gotosocial/internal/db"
@@ -30,7 +31,7 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/util"
 )
 
-func (p *processor) ReportsGet(
+func (p *AdminProcessor) AdminReportsGet(
 	ctx context.Context,
 	account *gtsmodel.Account,
 	resolved *bool,
@@ -89,4 +90,56 @@ func (p *processor) ReportsGet(
 		Limit:            limit,
 		ExtraQueryParams: extraQueryParams,
 	})
+}
+
+func (p *AdminProcessor) AdminReportGet(ctx context.Context, account *gtsmodel.Account, id string) (*apimodel.AdminReport, gtserror.WithCode) {
+	report, err := p.db.GetReportByID(ctx, id)
+	if err != nil {
+		if err == db.ErrNoEntries {
+			return nil, gtserror.NewErrorNotFound(err)
+		}
+		return nil, gtserror.NewErrorInternalError(err)
+	}
+
+	apimodelReport, err := p.tc.ReportToAdminAPIReport(ctx, report, account)
+	if err != nil {
+		return nil, gtserror.NewErrorInternalError(err)
+	}
+
+	return apimodelReport, nil
+}
+
+func (p *AdminProcessor) AdminReportResolve(ctx context.Context, account *gtsmodel.Account, id string, actionTakenComment *string) (*apimodel.AdminReport, gtserror.WithCode) {
+	report, err := p.db.GetReportByID(ctx, id)
+	if err != nil {
+		if err == db.ErrNoEntries {
+			return nil, gtserror.NewErrorNotFound(err)
+		}
+		return nil, gtserror.NewErrorInternalError(err)
+	}
+
+	columns := []string{
+		"action_taken_at",
+		"action_taken_by_account_id",
+	}
+
+	report.ActionTakenAt = time.Now()
+	report.ActionTakenByAccountID = account.ID
+
+	if actionTakenComment != nil {
+		report.ActionTaken = *actionTakenComment
+		columns = append(columns, "action_taken")
+	}
+
+	updatedReport, err := p.db.UpdateReport(ctx, report, columns...)
+	if err != nil {
+		return nil, gtserror.NewErrorInternalError(err)
+	}
+
+	apimodelReport, err := p.tc.ReportToAdminAPIReport(ctx, updatedReport, account)
+	if err != nil {
+		return nil, gtserror.NewErrorInternalError(err)
+	}
+
+	return apimodelReport, nil
 }
