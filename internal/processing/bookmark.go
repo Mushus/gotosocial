@@ -17,15 +17,3 @@
 */
 
 package processing
-
-import (
-	"context"
-
-	apimodel "github.com/superseriousbusiness/gotosocial/internal/api/model"
-	"github.com/superseriousbusiness/gotosocial/internal/gtserror"
-	"github.com/superseriousbusiness/gotosocial/internal/oauth"
-)
-
-func (p *processor) BookmarksGet(ctx context.Context, authed *oauth.Auth, maxID string, minID string, limit int) (*apimodel.PageableResponse, gtserror.WithCode) {
-	return p.accountProcessor.BookmarksGet(ctx, authed.Account, limit, maxID, minID)
-}

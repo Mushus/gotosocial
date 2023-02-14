@@ -32,7 +32,8 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/uris"
 )
 
-func (p *processor) BlockCreate(ctx context.Context, requestingAccount *gtsmodel.Account, targetAccountID string) (*apimodel.Relationship, gtserror.WithCode) {
+// AccountBlockCreate handles the creation of a block from requestingAccount to targetAccountID, either remote or local.
+func (p *AccountProcessor) AccountBlockCreate(ctx context.Context, requestingAccount *gtsmodel.Account, targetAccountID string) (*apimodel.Relationship, gtserror.WithCode) {
 	// make sure the target account actually exists in our db
 	targetAccount, err := p.db.GetAccountByID(ctx, targetAccountID)
 	if err != nil {
@@ -43,7 +44,7 @@ func (p *processor) BlockCreate(ctx context.Context, requestingAccount *gtsmodel
 	if blocked, err := p.db.IsBlocked(ctx, requestingAccount.ID, targetAccountID, false); err != nil {
 		return nil, gtserror.NewErrorInternalError(fmt.Errorf("BlockCreate: error checking existence of block: %s", err))
 	} else if blocked {
-		return p.RelationshipGet(ctx, requestingAccount, targetAccountID)
+		return p.AccountRelationshipGet(ctx, requestingAccount, targetAccountID)
 	}
 
 	// don't block yourself, silly
@@ -152,5 +153,5 @@ func (p *processor) BlockCreate(ctx context.Context, requestingAccount *gtsmodel
 		TargetAccount:  targetAccount,
 	})
 
-	return p.RelationshipGet(ctx, requestingAccount, targetAccountID)
+	return p.AccountRelationshipGet(ctx, requestingAccount, targetAccountID)
 }

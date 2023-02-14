@@ -31,7 +31,8 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/messages"
 )
 
-func (p *processor) BlockRemove(ctx context.Context, requestingAccount *gtsmodel.Account, targetAccountID string) (*apimodel.Relationship, gtserror.WithCode) {
+// AccountBlockRemove handles the removal of a block from requestingAccount to targetAccountID, either remote or local.
+func (p *AccountProcessor) AccountBlockRemove(ctx context.Context, requestingAccount *gtsmodel.Account, targetAccountID string) (*apimodel.Relationship, gtserror.WithCode) {
 	// make sure the target account actually exists in our db
 	targetAccount, err := p.db.GetAccountByID(ctx, targetAccountID)
 	if err != nil {
@@ -61,5 +62,5 @@ func (p *processor) BlockRemove(ctx context.Context, requestingAccount *gtsmodel
 	}
 
 	// return whatever relationship results from all this
-	return p.RelationshipGet(ctx, requestingAccount, targetAccountID)
+	return p.AccountRelationshipGet(ctx, requestingAccount, targetAccountID)
 }

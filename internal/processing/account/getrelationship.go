@@ -28,7 +28,8 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
 )
 
-func (p *processor) RelationshipGet(ctx context.Context, requestingAccount *gtsmodel.Account, targetAccountID string) (*apimodel.Relationship, gtserror.WithCode) {
+// AccountRelationshipGet returns a relationship model describing the relationship of the targetAccount to the Authed account.
+func (p *AccountProcessor) AccountRelationshipGet(ctx context.Context, requestingAccount *gtsmodel.Account, targetAccountID string) (*apimodel.Relationship, gtserror.WithCode) {
 	if requestingAccount == nil {
 		return nil, gtserror.NewErrorForbidden(errors.New("not authed"))
 	}

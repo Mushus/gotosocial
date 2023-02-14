@@ -26,10 +26,10 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/stream"
 )
 
-func (p *processor) AuthorizeStreamingRequest(ctx context.Context, accessToken string) (*gtsmodel.Account, gtserror.WithCode) {
+func (p *Processor) AuthorizeStreamingRequest(ctx context.Context, accessToken string) (*gtsmodel.Account, gtserror.WithCode) {
 	return p.streamingProcessor.AuthorizeStreamingRequest(ctx, accessToken)
 }
 
-func (p *processor) OpenStreamForAccount(ctx context.Context, account *gtsmodel.Account, streamType string) (*stream.Stream, gtserror.WithCode) {
+func (p *Processor) OpenStreamForAccount(ctx context.Context, account *gtsmodel.Account, streamType string) (*stream.Stream, gtserror.WithCode) {
 	return p.streamingProcessor.OpenStreamForAccount(ctx, account, streamType)
 }

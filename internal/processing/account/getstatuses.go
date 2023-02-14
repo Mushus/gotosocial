@@ -29,7 +29,9 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/util"
 )
 
-func (p *processor) StatusesGet(ctx context.Context, requestingAccount *gtsmodel.Account, targetAccountID string, limit int, excludeReplies bool, excludeReblogs bool, maxID string, minID string, pinnedOnly bool, mediaOnly bool, publicOnly bool) (*apimodel.PageableResponse, gtserror.WithCode) {
+// AccountStatusesGet fetches a number of statuses (in time descending order) from the given account, filtered by visibility for
+// the account given in authed.
+func (p *AccountProcessor) AccountStatusesGet(ctx context.Context, requestingAccount *gtsmodel.Account, targetAccountID string, limit int, excludeReplies bool, excludeReblogs bool, maxID string, minID string, pinnedOnly bool, mediaOnly bool, publicOnly bool) (*apimodel.PageableResponse, gtserror.WithCode) {
 	if requestingAccount != nil {
 		if blocked, err := p.db.IsBlocked(ctx, requestingAccount.ID, targetAccountID, true); err != nil {
 			return nil, gtserror.NewErrorInternalError(err)
@@ -96,7 +98,9 @@ func (p *processor) StatusesGet(ctx context.Context, requestingAccount *gtsmodel
 	})
 }
 
-func (p *processor) WebStatusesGet(ctx context.Context, targetAccountID string, maxID string) (*apimodel.PageableResponse, gtserror.WithCode) {
+// AccountWebStatusesGet fetches a number of statuses (in descending order) from the given account. It selects only
+// statuses which are suitable for showing on the public web profile of an account.
+func (p *AccountProcessor) AccountWebStatusesGet(ctx context.Context, targetAccountID string, maxID string) (*apimodel.PageableResponse, gtserror.WithCode) {
 	acct, err := p.db.GetAccountByID(ctx, targetAccountID)
 	if err != nil {
 		if err == db.ErrNoEntries {

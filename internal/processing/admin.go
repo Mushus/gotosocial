@@ -26,70 +26,70 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/oauth"
 )
 
-func (p *processor) AdminAccountAction(ctx context.Context, authed *oauth.Auth, form *apimodel.AdminAccountActionRequest) gtserror.WithCode {
+func (p *Processor) AdminAccountAction(ctx context.Context, authed *oauth.Auth, form *apimodel.AdminAccountActionRequest) gtserror.WithCode {
 	return p.adminProcessor.AccountAction(ctx, authed.Account, form)
 }
 
-func (p *processor) AdminEmojiCreate(ctx context.Context, authed *oauth.Auth, form *apimodel.EmojiCreateRequest) (*apimodel.Emoji, gtserror.WithCode) {
+func (p *Processor) AdminEmojiCreate(ctx context.Context, authed *oauth.Auth, form *apimodel.EmojiCreateRequest) (*apimodel.Emoji, gtserror.WithCode) {
 	return p.adminProcessor.EmojiCreate(ctx, authed.Account, authed.User, form)
 }
 
-func (p *processor) AdminEmojisGet(ctx context.Context, authed *oauth.Auth, domain string, includeDisabled bool, includeEnabled bool, shortcode string, maxShortcodeDomain string, minShortcodeDomain string, limit int) (*apimodel.PageableResponse, gtserror.WithCode) {
+func (p *Processor) AdminEmojisGet(ctx context.Context, authed *oauth.Auth, domain string, includeDisabled bool, includeEnabled bool, shortcode string, maxShortcodeDomain string, minShortcodeDomain string, limit int) (*apimodel.PageableResponse, gtserror.WithCode) {
 	return p.adminProcessor.EmojisGet(ctx, authed.Account, authed.User, domain, includeDisabled, includeEnabled, shortcode, maxShortcodeDomain, minShortcodeDomain, limit)
 }
 
-func (p *processor) AdminEmojiGet(ctx context.Context, authed *oauth.Auth, id string) (*apimodel.AdminEmoji, gtserror.WithCode) {
+func (p *Processor) AdminEmojiGet(ctx context.Context, authed *oauth.Auth, id string) (*apimodel.AdminEmoji, gtserror.WithCode) {
 	return p.adminProcessor.EmojiGet(ctx, authed.Account, authed.User, id)
 }
 
-func (p *processor) AdminEmojiUpdate(ctx context.Context, id string, form *apimodel.EmojiUpdateRequest) (*apimodel.AdminEmoji, gtserror.WithCode) {
+func (p *Processor) AdminEmojiUpdate(ctx context.Context, id string, form *apimodel.EmojiUpdateRequest) (*apimodel.AdminEmoji, gtserror.WithCode) {
 	return p.adminProcessor.EmojiUpdate(ctx, id, form)
 }
 
-func (p *processor) AdminEmojiDelete(ctx context.Context, authed *oauth.Auth, id string) (*apimodel.AdminEmoji, gtserror.WithCode) {
+func (p *Processor) AdminEmojiDelete(ctx context.Context, authed *oauth.Auth, id string) (*apimodel.AdminEmoji, gtserror.WithCode) {
 	return p.adminProcessor.EmojiDelete(ctx, id)
 }
 
-func (p *processor) AdminEmojiCategoriesGet(ctx context.Context) ([]*apimodel.EmojiCategory, gtserror.WithCode) {
+func (p *Processor) AdminEmojiCategoriesGet(ctx context.Context) ([]*apimodel.EmojiCategory, gtserror.WithCode) {
 	return p.adminProcessor.EmojiCategoriesGet(ctx)
 }
 
-func (p *processor) AdminDomainBlockCreate(ctx context.Context, authed *oauth.Auth, form *apimodel.DomainBlockCreateRequest) (*apimodel.DomainBlock, gtserror.WithCode) {
+func (p *Processor) AdminDomainBlockCreate(ctx context.Context, authed *oauth.Auth, form *apimodel.DomainBlockCreateRequest) (*apimodel.DomainBlock, gtserror.WithCode) {
 	return p.adminProcessor.DomainBlockCreate(ctx, authed.Account, form.Domain, form.Obfuscate, form.PublicComment, form.PrivateComment, "")
 }
 
-func (p *processor) AdminDomainBlocksImport(ctx context.Context, authed *oauth.Auth, form *apimodel.DomainBlockCreateRequest) ([]*apimodel.DomainBlock, gtserror.WithCode) {
+func (p *Processor) AdminDomainBlocksImport(ctx context.Context, authed *oauth.Auth, form *apimodel.DomainBlockCreateRequest) ([]*apimodel.DomainBlock, gtserror.WithCode) {
 	return p.adminProcessor.DomainBlocksImport(ctx, authed.Account, form.Domains)
 }
 
-func (p *processor) AdminDomainBlocksGet(ctx context.Context, authed *oauth.Auth, export bool) ([]*apimodel.DomainBlock, gtserror.WithCode) {
+func (p *Processor) AdminDomainBlocksGet(ctx context.Context, authed *oauth.Auth, export bool) ([]*apimodel.DomainBlock, gtserror.WithCode) {
 	return p.adminProcessor.DomainBlocksGet(ctx, authed.Account, export)
 }
 
-func (p *processor) AdminDomainBlockGet(ctx context.Context, authed *oauth.Auth, id string, export bool) (*apimodel.DomainBlock, gtserror.WithCode) {
+func (p *Processor) AdminDomainBlockGet(ctx context.Context, authed *oauth.Auth, id string, export bool) (*apimodel.DomainBlock, gtserror.WithCode) {
 	return p.adminProcessor.DomainBlockGet(ctx, authed.Account, id, export)
 }
 
-func (p *processor) AdminDomainBlockDelete(ctx context.Context, authed *oauth.Auth, id string) (*apimodel.DomainBlock, gtserror.WithCode) {
+func (p *Processor) AdminDomainBlockDelete(ctx context.Context, authed *oauth.Auth, id string) (*apimodel.DomainBlock, gtserror.WithCode) {
 	return p.adminProcessor.DomainBlockDelete(ctx, authed.Account, id)
 }
 
-func (p *processor) AdminMediaPrune(ctx context.Context, mediaRemoteCacheDays int) gtserror.WithCode {
+func (p *Processor) AdminMediaPrune(ctx context.Context, mediaRemoteCacheDays int) gtserror.WithCode {
 	return p.adminProcessor.MediaPrune(ctx, mediaRemoteCacheDays)
 }
 
-func (p *processor) AdminMediaRefetch(ctx context.Context, authed *oauth.Auth, domain string) gtserror.WithCode {
+func (p *Processor) AdminMediaRefetch(ctx context.Context, authed *oauth.Auth, domain string) gtserror.WithCode {
 	return p.adminProcessor.MediaRefetch(ctx, authed.Account, domain)
 }
 
-func (p *processor) AdminReportsGet(ctx context.Context, authed *oauth.Auth, resolved *bool, accountID string, targetAccountID string, maxID string, sinceID string, minID string, limit int) (*apimodel.PageableResponse, gtserror.WithCode) {
+func (p *Processor) AdminReportsGet(ctx context.Context, authed *oauth.Auth, resolved *bool, accountID string, targetAccountID string, maxID string, sinceID string, minID string, limit int) (*apimodel.PageableResponse, gtserror.WithCode) {
 	return p.adminProcessor.ReportsGet(ctx, authed.Account, resolved, accountID, targetAccountID, maxID, sinceID, minID, limit)
 }
 
-func (p *processor) AdminReportGet(ctx context.Context, authed *oauth.Auth, id string) (*apimodel.AdminReport, gtserror.WithCode) {
+func (p *Processor) AdminReportGet(ctx context.Context, authed *oauth.Auth, id string) (*apimodel.AdminReport, gtserror.WithCode) {
 	return p.adminProcessor.ReportGet(ctx, authed.Account, id)
 }
 
-func (p *processor) AdminReportResolve(ctx context.Context, authed *oauth.Auth, id string, actionTakenComment *string) (*apimodel.AdminReport, gtserror.WithCode) {
+func (p *Processor) AdminReportResolve(ctx context.Context, authed *oauth.Auth, id string, actionTakenComment *string) (*apimodel.AdminReport, gtserror.WithCode) {
 	return p.adminProcessor.ReportResolve(ctx, authed.Account, id, actionTakenComment)
 }

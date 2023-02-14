@@ -66,7 +66,7 @@ func (m *Module) profileGETHandler(c *gin.Context) {
 		return instance, nil
 	}
 
-	account, errWithCode := m.processor.AccountGetLocalByUsername(ctx, authed, username)
+	account, errWithCode := m.processor.AccountGetLocalByUsername(ctx, authed.Account, username)
 	if errWithCode != nil {
 		apiutil.ErrorHandler(c, errWithCode, instanceGet)
 		return

@@ -30,7 +30,8 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/messages"
 )
 
-func (p *processor) FollowRemove(ctx context.Context, requestingAccount *gtsmodel.Account, targetAccountID string) (*apimodel.Relationship, gtserror.WithCode) {
+// AccountFollowRemove handles the removal of a follow/follow request to an account, either remote or local.
+func (p *AccountProcessor) AccountFollowRemove(ctx context.Context, requestingAccount *gtsmodel.Account, targetAccountID string) (*apimodel.Relationship, gtserror.WithCode) {
 	// if there's a block between the accounts we shouldn't do anything
 	blocked, err := p.db.IsBlocked(ctx, requestingAccount.ID, targetAccountID, true)
 	if err != nil {
@@ -109,5 +110,5 @@ func (p *processor) FollowRemove(ctx context.Context, requestingAccount *gtsmode
 	}
 
 	// return whatever relationship results from all this
-	return p.RelationshipGet(ctx, requestingAccount, targetAccountID)
+	return p.AccountRelationshipGet(ctx, requestingAccount, targetAccountID)
 }

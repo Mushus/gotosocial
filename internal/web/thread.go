@@ -72,7 +72,7 @@ func (m *Module) threadGETHandler(c *gin.Context) {
 
 	// do this check to make sure the status is actually from a local account,
 	// we shouldn't render threads from statuses that don't belong to us!
-	if _, errWithCode := m.processor.AccountGetLocalByUsername(ctx, authed, username); errWithCode != nil {
+	if _, errWithCode := m.processor.AccountGetLocalByUsername(ctx, authed.Account, username); errWithCode != nil {
 		apiutil.ErrorHandler(c, errWithCode, instanceGet)
 		return
 	}

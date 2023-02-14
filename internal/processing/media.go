@@ -26,22 +26,22 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/oauth"
 )
 
-func (p *processor) MediaCreate(ctx context.Context, authed *oauth.Auth, form *apimodel.AttachmentRequest) (*apimodel.Attachment, gtserror.WithCode) {
+func (p *Processor) MediaCreate(ctx context.Context, authed *oauth.Auth, form *apimodel.AttachmentRequest) (*apimodel.Attachment, gtserror.WithCode) {
 	return p.mediaProcessor.Create(ctx, authed.Account, form)
 }
 
-func (p *processor) MediaGet(ctx context.Context, authed *oauth.Auth, mediaAttachmentID string) (*apimodel.Attachment, gtserror.WithCode) {
+func (p *Processor) MediaGet(ctx context.Context, authed *oauth.Auth, mediaAttachmentID string) (*apimodel.Attachment, gtserror.WithCode) {
 	return p.mediaProcessor.GetMedia(ctx, authed.Account, mediaAttachmentID)
 }
 
-func (p *processor) MediaUpdate(ctx context.Context, authed *oauth.Auth, mediaAttachmentID string, form *apimodel.AttachmentUpdateRequest) (*apimodel.Attachment, gtserror.WithCode) {
+func (p *Processor) MediaUpdate(ctx context.Context, authed *oauth.Auth, mediaAttachmentID string, form *apimodel.AttachmentUpdateRequest) (*apimodel.Attachment, gtserror.WithCode) {
 	return p.mediaProcessor.Update(ctx, authed.Account, mediaAttachmentID, form)
 }
 
-func (p *processor) FileGet(ctx context.Context, authed *oauth.Auth, form *apimodel.GetContentRequestForm) (*apimodel.Content, gtserror.WithCode) {
+func (p *Processor) FileGet(ctx context.Context, authed *oauth.Auth, form *apimodel.GetContentRequestForm) (*apimodel.Content, gtserror.WithCode) {
 	return p.mediaProcessor.GetFile(ctx, authed.Account, form)
 }
 
-func (p *processor) CustomEmojisGet(ctx context.Context) ([]*apimodel.Emoji, gtserror.WithCode) {
+func (p *Processor) CustomEmojisGet(ctx context.Context) ([]*apimodel.Emoji, gtserror.WithCode) {
 	return p.mediaProcessor.GetCustomEmojis(ctx)
 }

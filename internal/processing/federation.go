@@ -27,46 +27,46 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/gtserror"
 )
 
-func (p *processor) GetFediUser(ctx context.Context, requestedUsername string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
+func (p *Processor) GetFediUser(ctx context.Context, requestedUsername string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
 	return p.federationProcessor.GetUser(ctx, requestedUsername, requestURL)
 }
 
-func (p *processor) GetFediFollowers(ctx context.Context, requestedUsername string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
+func (p *Processor) GetFediFollowers(ctx context.Context, requestedUsername string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
 	return p.federationProcessor.GetFollowers(ctx, requestedUsername, requestURL)
 }
 
-func (p *processor) GetFediFollowing(ctx context.Context, requestedUsername string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
+func (p *Processor) GetFediFollowing(ctx context.Context, requestedUsername string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
 	return p.federationProcessor.GetFollowing(ctx, requestedUsername, requestURL)
 }
 
-func (p *processor) GetFediStatus(ctx context.Context, requestedUsername string, requestedStatusID string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
+func (p *Processor) GetFediStatus(ctx context.Context, requestedUsername string, requestedStatusID string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
 	return p.federationProcessor.GetStatus(ctx, requestedUsername, requestedStatusID, requestURL)
 }
 
-func (p *processor) GetFediStatusReplies(ctx context.Context, requestedUsername string, requestedStatusID string, page bool, onlyOtherAccounts bool, minID string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
+func (p *Processor) GetFediStatusReplies(ctx context.Context, requestedUsername string, requestedStatusID string, page bool, onlyOtherAccounts bool, minID string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
 	return p.federationProcessor.GetStatusReplies(ctx, requestedUsername, requestedStatusID, page, onlyOtherAccounts, minID, requestURL)
 }
 
-func (p *processor) GetFediOutbox(ctx context.Context, requestedUsername string, page bool, maxID string, minID string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
+func (p *Processor) GetFediOutbox(ctx context.Context, requestedUsername string, page bool, maxID string, minID string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
 	return p.federationProcessor.GetOutbox(ctx, requestedUsername, page, maxID, minID, requestURL)
 }
 
-func (p *processor) GetFediEmoji(ctx context.Context, requestedEmojiID string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
+func (p *Processor) GetFediEmoji(ctx context.Context, requestedEmojiID string, requestURL *url.URL) (interface{}, gtserror.WithCode) {
 	return p.federationProcessor.GetEmoji(ctx, requestedEmojiID, requestURL)
 }
 
-func (p *processor) GetWebfingerAccount(ctx context.Context, requestedUsername string) (*apimodel.WellKnownResponse, gtserror.WithCode) {
+func (p *Processor) GetWebfingerAccount(ctx context.Context, requestedUsername string) (*apimodel.WellKnownResponse, gtserror.WithCode) {
 	return p.federationProcessor.GetWebfingerAccount(ctx, requestedUsername)
 }
 
-func (p *processor) GetNodeInfoRel(ctx context.Context) (*apimodel.WellKnownResponse, gtserror.WithCode) {
+func (p *Processor) GetNodeInfoRel(ctx context.Context) (*apimodel.WellKnownResponse, gtserror.WithCode) {
 	return p.federationProcessor.GetNodeInfoRel(ctx)
 }
 
-func (p *processor) GetNodeInfo(ctx context.Context) (*apimodel.Nodeinfo, gtserror.WithCode) {
+func (p *Processor) GetNodeInfo(ctx context.Context) (*apimodel.Nodeinfo, gtserror.WithCode) {
 	return p.federationProcessor.GetNodeInfo(ctx)
 }
 
-func (p *processor) InboxPost(ctx context.Context, w http.ResponseWriter, r *http.Request) (bool, error) {
+func (p *Processor) InboxPost(ctx context.Context, w http.ResponseWriter, r *http.Request) (bool, error) {
 	return p.federationProcessor.PostInbox(ctx, w, r)
 }
