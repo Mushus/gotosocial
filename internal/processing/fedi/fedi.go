@@ -25,7 +25,7 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/visibility"
 )
 
-type FediProcessor struct {
+type FediProcessor struct { //nolint:revive
 	db        db.DB
 	federator federation.Federator
 	tc        typeutils.TypeConverter

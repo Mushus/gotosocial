@@ -23,7 +23,7 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/email"
 )
 
-type UserProcessor struct {
+type UserProcessor struct { //nolint:revive
 	emailSender email.Sender
 	db          db.DB
 }
