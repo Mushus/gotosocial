@@ -30,20 +30,20 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/typeutils"
 )
 
-type Processor interface {
+type rocessor interface {
 	ReportsGet(ctx context.Context, account *gtsmodel.Account, resolved *bool, targetAccountID string, maxID string, sinceID string, minID string, limit int) (*apimodel.PageableResponse, gtserror.WithCode)
 	ReportGet(ctx context.Context, account *gtsmodel.Account, id string) (*apimodel.Report, gtserror.WithCode)
-	Create(ctx context.Context, account *gtsmodel.Account, form *apimodel.ReportCreateRequest) (*apimodel.Report, gtserror.WithCode)
+	ReportCreate(ctx context.Context, account *gtsmodel.Account, form *apimodel.ReportCreateRequest) (*apimodel.Report, gtserror.WithCode)
 }
 
-type processor struct {
+type ReportProcessor struct {
 	db           db.DB
 	tc           typeutils.TypeConverter
 	clientWorker *concurrency.WorkerPool[messages.FromClientAPI]
 }
 
-func New(db db.DB, tc typeutils.TypeConverter, clientWorker *concurrency.WorkerPool[messages.FromClientAPI]) Processor {
-	return &processor{
+func New(db db.DB, tc typeutils.TypeConverter, clientWorker *concurrency.WorkerPool[messages.FromClientAPI]) ReportProcessor {
+	return ReportProcessor{
 		tc:           tc,
 		db:           db,
 		clientWorker: clientWorker,

@@ -149,7 +149,7 @@ func (p *Processor) processCreateAccountFromClientAPI(ctx context.Context, clien
 	}
 
 	// email a confirmation to this user
-	return p.userProcessor.SendConfirmEmail(ctx, user, account.Username)
+	return p.UserEmailSendConfirm(ctx, user, account.Username)
 }
 
 func (p *Processor) processCreateStatusFromClientAPI(ctx context.Context, clientMsg messages.FromClientAPI) error {

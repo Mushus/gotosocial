@@ -33,6 +33,7 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/media"
 	"github.com/superseriousbusiness/gotosocial/internal/messages"
 	"github.com/superseriousbusiness/gotosocial/internal/text"
+	"github.com/superseriousbusiness/gotosocial/internal/typeutils"
 	"github.com/superseriousbusiness/gotosocial/internal/validate"
 )
 
@@ -131,7 +132,7 @@ func (p *AccountProcessor) AccountUpdate(ctx context.Context, account *gtsmodel.
 			if err := validate.Privacy(*form.Source.Privacy); err != nil {
 				return nil, gtserror.NewErrorBadRequest(err)
 			}
-			privacy := p.tc.APIVisToVis(apimodel.Visibility(*form.Source.Privacy))
+			privacy := typeutils.APIVisToVis(apimodel.Visibility(*form.Source.Privacy))
 			account.Privacy = privacy
 		}
 

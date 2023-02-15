@@ -31,8 +31,9 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/visibility"
 )
 
-// AccountProcessor wraps functionality for updating/creating/deleting
-// accounts in response to API requests.
+// AccountProcessor wraps functionality for updating, creating, and deleting accounts in response to API requests.
+//
+// It also contains logic for actions towards accounts such as following, blocking, seeing follows, etc.
 type AccountProcessor struct { //nolint:revive
 	tc           typeutils.TypeConverter
 	mediaManager media.Manager

@@ -77,7 +77,7 @@ func (m *Module) threadGETHandler(c *gin.Context) {
 		return
 	}
 
-	status, errWithCode := m.processor.StatusGet(ctx, authed, statusID)
+	status, errWithCode := m.processor.StatusGet(ctx, authed.Account, statusID)
 	if errWithCode != nil {
 		apiutil.ErrorHandler(c, errWithCode, instanceGet)
 		return
@@ -97,7 +97,7 @@ func (m *Module) threadGETHandler(c *gin.Context) {
 		return
 	}
 
-	context, errWithCode := m.processor.StatusGetContext(ctx, authed, statusID)
+	context, errWithCode := m.processor.StatusContextGet(ctx, authed.Account, statusID)
 	if errWithCode != nil {
 		apiutil.ErrorHandler(c, errWithCode, instanceGet)
 		return

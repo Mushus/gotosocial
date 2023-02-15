@@ -23,16 +23,16 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/db"
 	"github.com/superseriousbusiness/gotosocial/internal/email"
 	"github.com/superseriousbusiness/gotosocial/internal/federation"
-	"github.com/superseriousbusiness/gotosocial/internal/media"
+	mm "github.com/superseriousbusiness/gotosocial/internal/media"
 	"github.com/superseriousbusiness/gotosocial/internal/messages"
 	"github.com/superseriousbusiness/gotosocial/internal/oauth"
 	"github.com/superseriousbusiness/gotosocial/internal/processing/account"
 	"github.com/superseriousbusiness/gotosocial/internal/processing/admin"
-	federationProcessor "github.com/superseriousbusiness/gotosocial/internal/processing/federation"
-	mediaProcessor "github.com/superseriousbusiness/gotosocial/internal/processing/media"
+	"github.com/superseriousbusiness/gotosocial/internal/processing/fedi"
+	"github.com/superseriousbusiness/gotosocial/internal/processing/media"
 	"github.com/superseriousbusiness/gotosocial/internal/processing/report"
 	"github.com/superseriousbusiness/gotosocial/internal/processing/status"
-	"github.com/superseriousbusiness/gotosocial/internal/processing/streaming"
+	"github.com/superseriousbusiness/gotosocial/internal/processing/stream"
 	"github.com/superseriousbusiness/gotosocial/internal/processing/user"
 	"github.com/superseriousbusiness/gotosocial/internal/storage"
 	"github.com/superseriousbusiness/gotosocial/internal/timeline"
@@ -47,7 +47,7 @@ type Processor struct {
 	federator       federation.Federator
 	tc              typeutils.TypeConverter
 	oauthServer     oauth.Server
-	mediaManager    media.Manager
+	mediaManager    mm.Manager
 	storage         *storage.Driver
 	statusTimelines timeline.Manager
 	db              db.DB
@@ -59,12 +59,12 @@ type Processor struct {
 
 	account.AccountProcessor
 	admin.AdminProcessor
-	federationProcessor.FederationProcessor
-	statusProcessor    status.Processor
-	streamingProcessor streaming.Processor
-	mediaProcessor     mediaProcessor.Processor
-	userProcessor      user.Processor
-	reportProcessor    report.Processor
+	fedi.FediProcessor
+	media.MediaProcessor
+	report.ReportProcessor
+	status.StatusProcessor
+	stream.StreamProcessor
+	user.UserProcessor
 }
 
 // NewProcessor returns a new Processor.
@@ -72,7 +72,7 @@ func NewProcessor(
 	tc typeutils.TypeConverter,
 	federator federation.Federator,
 	oauthServer oauth.Server,
-	mediaManager media.Manager,
+	mediaManager mm.Manager,
 	storage *storage.Driver,
 	db db.DB,
 	emailSender email.Sender,
@@ -81,11 +81,6 @@ func NewProcessor(
 ) *Processor {
 	parseMentionFunc := GetParseMentionFunc(db, federator)
 
-	statusProcessor := status.New(db, tc, clientWorker, parseMentionFunc)
-	streamingProcessor := streaming.New(db, oauthServer)
-	mediaProcessor := mediaProcessor.New(db, tc, mediaManager, federator.TransportController(), storage)
-	userProcessor := user.New(db, emailSender)
-	reportProcessor := report.New(db, tc, clientWorker)
 	filter := visibility.NewFilter(db)
 
 	return &Processor{
@@ -99,17 +94,17 @@ func NewProcessor(
 		storage:         storage,
 		statusTimelines: timeline.NewManager(StatusGrabFunction(db), StatusFilterFunction(db, filter), StatusPrepareFunction(db, tc), StatusSkipInsertFunction()),
 		db:              db,
-		filter:          visibility.NewFilter(db),
+		filter:          filter,
 
-		AccountProcessor:    account.New(db, tc, mediaManager, oauthServer, clientWorker, federator, parseMentionFunc),
-		AdminProcessor:      admin.New(db, tc, mediaManager, federator.TransportController(), storage, clientWorker),
-		FederationProcessor: federationProcessor.New(db, tc, federator),
-
-		statusProcessor:    statusProcessor,
-		streamingProcessor: streamingProcessor,
-		mediaProcessor:     mediaProcessor,
-		userProcessor:      userProcessor,
-		reportProcessor:    reportProcessor,
+		// sub processors
+		AccountProcessor: account.New(db, tc, mediaManager, oauthServer, clientWorker, federator, parseMentionFunc),
+		AdminProcessor:   admin.New(db, tc, mediaManager, federator.TransportController(), storage, clientWorker),
+		FediProcessor:    fedi.New(db, tc, federator),
+		MediaProcessor:   media.New(db, tc, mediaManager, federator.TransportController(), storage),
+		ReportProcessor:  report.New(db, tc, clientWorker),
+		StatusProcessor:  status.New(db, tc, clientWorker, parseMentionFunc),
+		StreamProcessor:  stream.New(db, oauthServer),
+		UserProcessor:    user.New(db, emailSender),
 	}
 }
 
